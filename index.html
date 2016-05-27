@@ -1,0 +1,261 @@
+<html>
+<head>
+  <style>
+  table {
+      border-collapse: collapse;
+      table-layout: fixed;
+  }
+  
+  table, th, tr, td{
+      border: 1px solid black;
+      height: 30px;
+  }
+  
+  table, th{
+      width: 100%;
+      font-size: 25px;
+  }
+  
+  th, a{
+     cursor: default; 
+  }
+  
+  .inputField {
+      width: 100%;
+      padding: 0px;
+      border-width: 0;
+      height: 100%;
+      font-size: 17px;
+  }
+  
+  .btn{
+      text-align: center;
+      vertical-align: middle;
+      cursor: default;
+  }
+  
+  .center {
+      margin-bottom: 8px;
+  }
+  
+  .checkbox{
+      cursor: default;
+  }
+  
+  [name=DateCell], [name=DeleteCell]  {
+      font-size: initial;
+  }
+  
+  #addRowBtn {
+      height: 25px;
+      font: icon;
+  }
+  </style>
+</head>
+
+<body onload='myTable()'>
+<script>
+  function myTable() {
+      'use strict';
+      
+      var tbl = [],
+          sortASC = [true, true, true, true, true],
+          addRowBtn = document.getElementById('addRowBtn'),
+          headers = document.getElementsByClassName('label'),
+          colTypeToNum = {String:'0', Number:'1', Boolean:'2', Date:'3', Delete:'4'},
+          arr = Array.prototype.slice.call( headers );
+      
+      arr.forEach(function(item, index) {
+          item.addEventListener('click', sortByColumn);
+      });
+      
+      addRowBtn.addEventListener('click', function addRow() {
+          var table = document.querySelector("#tblBody"),
+              row = table.insertRow(-1),
+              nameCell = row.insertCell(0),
+              numberCell = row.insertCell(1),
+              booleanCell = row.insertCell(2),
+              dateCell = row.insertCell(3),
+              deleteCell = row.insertCell(4),
+              rowNum = row.rowIndex - 1;
+  
+          tbl[rowNum] = [];
+  
+          addNameCell(nameCell);
+          addNumberCell(numberCell);
+          addBooleanCell(booleanCell);
+          addDateCell(dateCell);
+          addDeleteCell(deleteCell);
+  
+          assignEvents(row);
+  
+          tbl[rowNum].push('');
+          tbl[rowNum].push(Number.MAX_SAFE_INTEGER);
+          tbl[rowNum].push(false);
+          tbl[rowNum].push('1000-01-01');
+      });
+  
+      function sortByColumn() {
+          var i, j, row, cell,
+              col = parseInt(colTypeToNum[this.innerHTML]),
+              table = document.querySelector('#myTable'),
+              tblBody = document.querySelector('#tblBody'),
+              rows = tblBody.rows;
+  
+          if (sortASC[col]) {
+              tbl.sort(function (a, b) {
+                  return (a[col] === b[col]) ? 0 : (a[col] > b[col] ? 1 : -1);
+              });
+          } else {
+              tbl.sort(function (a, b) {
+                  return (a[col] === b[col]) ? 0 : (a[col] > b[col] ? -1 : 1);
+              });
+          }
+  
+          tbl.forEach(function (item, index) {
+              rows[index].cells[0].childNodes[0].value = item[0];
+              rows[index].cells[1].childNodes[0].value = item[1] !== Number.MAX_SAFE_INTEGER ? item[1] : '';
+              rows[index].cells[2].childNodes[0].checked = item[2];
+              rows[index].cells[3].childNodes[0].value = item[3] !== '1000-01-01' ? item[3] : '';
+  
+          });
+          sortASC[col] = !sortASC[col];
+      }
+  
+      function addStringFieldEvent(row) {
+          row.cells[0].childNodes[0].addEventListener('input', function (event) {
+              var input = event.target,
+                  value = input.value,
+                  cell = input.parentNode,
+                  rowNum = cell.parentNode.rowIndex - 1;
+  
+              tbl[rowNum][0] = value;
+          });
+      }
+      function addNumberFieldEvent(row) {
+          row.cells[1].childNodes[0].addEventListener('keypress', function (event) {
+              var charCode = (event.which) ? event.which : event.keyCode;
+              if (charCode < 48 || charCode > 57) {
+                  event.preventDefault();
+              }
+          });
+          row.cells[1].childNodes[0].addEventListener('change', function (event) {
+              var input = event.target,
+                  value = input.value,
+                  cell = input.parentNode,
+                  rowNum = cell.parentNode.rowIndex - 1;
+              if (value === '') {
+                  value = Number.MAX_SAFE_INTEGER;
+              }
+              tbl[rowNum][1] = parseInt(value);
+          });
+      }
+      function addBooleanFieldEvent(row) {
+          row.cells[2].childNodes[0].addEventListener('change', function (event) {
+              var input = event.target,
+                  checked = input.checked,
+                  cell = input.parentNode,
+                  rowNum = cell.parentNode.rowIndex - 1;
+  
+              tbl[rowNum][2] = checked;
+          });
+      }
+      function addDateFieldEvent(row) {
+          row.cells[3].childNodes[0].addEventListener('change', function (event) {
+              var input = event.target || event.srcElement,
+                  cell = input.parentNode,
+                  rowNum = cell.parentNode.rowIndex - 1,
+                  date = input.value;
+  
+              tbl[rowNum][3] = date;
+          });
+      }
+      function addDeleteFieldEvent(row) {
+          row.cells[4].childNodes[0].addEventListener('click', function (event) {
+              var input = event.target || event.srcElement,
+                  cell = input.parentNode,
+                  rowNum = cell.parentNode.rowIndex - 1,
+                  table = document.querySelector("#tblBody");
+  
+              table.deleteRow(rowNum);
+              tbl.splice(rowNum, 1);
+          });
+      }
+  
+      function assignEvents(row) {
+          addStringFieldEvent(row);
+          addNumberFieldEvent(row);
+          addBooleanFieldEvent(row);
+          addDateFieldEvent(row);
+          addDeleteFieldEvent(row);
+      }
+  
+      function addNameCell(nameCell) {
+          var name = document.createElement('input');
+          name.setAttribute('type', 'text');
+          name.setAttribute('class', 'inputField');
+          nameCell.appendChild(name);
+      }
+  
+      function addNumberCell(numberCell) {
+          var number = document.createElement('input');
+          number.setAttribute('type', 'number');
+          number.setAttribute('class', 'inputField');
+          numberCell.appendChild(number);
+      }
+  
+      function addBooleanCell(booleanCell) {
+          var checkbox = document.createElement('input');
+          checkbox.setAttribute('type', 'checkbox');
+          checkbox.setAttribute('class', 'center');
+          checkbox.checked = false;
+          booleanCell.setAttribute('class', 'btn');
+          booleanCell.appendChild(checkbox);
+      }
+  
+      function addDateCell(dateCell) {
+          var date = document.createElement('input');
+          date.setAttribute('type', 'date');
+          date.setAttribute('name', 'DateCell');
+          date.setAttribute('class', 'center');
+          dateCell.setAttribute('class', 'btn');
+          dateCell.appendChild(date);
+      }
+  
+      function addDeleteCell(deleteCell) {
+          var deleteBtn = document.createElement('input');
+          deleteBtn.setAttribute('type', 'button');
+          deleteBtn.setAttribute('name', 'DeleteCell');
+          deleteBtn.setAttribute('value', 'Delete Row');
+          deleteBtn.setAttribute('class', 'center');
+          deleteCell.setAttribute('class', 'btn');
+          deleteCell.appendChild(deleteBtn);
+      }
+     
+  }
+</script>
+
+<table id='myTable'>
+    <thead id='tblHeader'>
+            <th class='name'>
+                <lable class='label'>String</lable>
+            </th>
+            <th class='number'>
+                <lable class='label'>Number</lable>
+            </th>
+            <th class='boolean'>
+                <lable class='label'>Boolean</lable>
+            </th>
+            <th class='date'>
+                <lable class='label'>Date</lable>
+            </th>
+            <th>Delete</th>
+    </thead>
+    <tbody id='tblBody'>
+    </tbody>
+</table>  
+<br><br>
+<button id='addRowBtn'>Add row</button>
+
+</body>
+</html>
